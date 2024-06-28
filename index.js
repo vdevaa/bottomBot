@@ -94,6 +94,51 @@ client.on('messageCreate', async message => {
             await message.channel.send('An error occurred while fetching rank and fame information.');
         }
     }
+
+    if (message.content === '!top') {
+        try {
+            console.log('Sending request to RealmEye...');
+            const response = await axios.get('https://www.realmeye.com/top-characters-of-guild/Bottom%20Text', {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+                }
+            });
+            console.log('Status:', response.status);
+            console.log('Headers:', response.headers);
+
+            const $ = cheerio.load(response.data);
+            console.log('Data:', $.html());  // Log the raw HTML data for debugging
+
+            const topCharacters = [];
+            $('table.tablesorter tbody tr').each((index, element) => {
+                const name = $(element).find('td:nth-child(3) a').text().trim();
+                const topFame = $(element).find('td:nth-child(4)').text().trim();
+                const topClass = $(element).find('td:nth-child(5)').text().trim();
+                const topStat = $(element).find('td:nth-child(7)').text().trim();
+                console.log('Parsed Character Name:', name);  // Log each parsed character name for debugging
+
+                if (name) {
+                    topCharacters.push({name, topFame, topClass, topStat});
+                }
+            });
+
+            console.log('Parsed Top Characters:', topCharacters);  // Log the parsed top characters for debugging
+
+            if (topCharacters.length === 0) {
+                await message.channel.send('No top characters found.');
+                return;
+            }
+
+            const topCharactersMessages = topCharacters.slice(0, 5).map((topCharacters, index) => {
+                return `${index + 1}. **${topCharacters.name}** (${topCharacters.topStat}) **Fame:** ${topCharacters.topFame} **Class:** ${topCharacters.topClass}`;
+            });
+
+            await message.channel.send(topCharactersMessages.join('\n\n'));
+        } catch (error) {
+            console.error('Error fetching or sending data:', error);
+            await message.channel.send('An error occurred while fetching top characters.');
+        }
+    }
 });
 
 const token = process.env.DISCORD_TOKEN;  // Read token from .env file
