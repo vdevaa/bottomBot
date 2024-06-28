@@ -55,6 +55,45 @@ client.on('messageCreate', async message => {
             await message.channel.send('An error occurred while fetching recent deaths.');
         }
     }
+
+    if (message.content === '!rank') {
+        try {
+            console.log('Sending request to RealmEye...');
+            const response = await axios.get('https://www.realmeye.com/guild/Bottom%20Text', {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+                }
+            });
+            console.log('Status:', response.status);
+            console.log('Headers:', response.headers);
+
+            const $ = cheerio.load(response.data);
+            let rank = '';
+            let fame = '';
+
+            $('table tbody tr').each((index, element) => {
+                const label = $(element).find('td:nth-child(1)').text().trim();
+                const value = $(element).find('td:nth-child(2)').text().trim();
+                
+                if (label === 'Fame') {
+                    fame = value;
+                }
+                if (label === 'Most active on') {
+                    rank = value;
+                }
+            });
+
+            if (!rank || !fame) {
+                await message.channel.send('Unable to retrieve rank and fame information.');
+                return;
+            }
+
+            await message.channel.send(`**Guild Fame:** ${fame}\n**Guild Rank:** ${rank}`);
+        } catch (error) {
+            console.error('Error fetching or sending data:', error);
+            await message.channel.send('An error occurred while fetching rank and fame information.');
+        }
+    }
 });
 
 const token = process.env.DISCORD_TOKEN;  // Read token from .env file
