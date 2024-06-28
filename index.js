@@ -6,12 +6,12 @@ require('dotenv').config();  // Load environment variables from .env file
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 
 client.once('ready', () => {
-    console.log('Bot is online!');
+    console.log('🤖 Bot is online!');
 });
 
 client.on('messageCreate', async message => {
     if (message.content === '!ping') {
-        await message.channel.send('Pong!');
+        await message.channel.send('🏓 Pong!');
     }
 
     if (message.content === '!deaths') {
@@ -33,9 +33,11 @@ client.on('messageCreate', async message => {
                 const totalFame = $(element).find('td:nth-child(5)').text().trim();
                 const killedBy = $(element).find('td:nth-child(8)').text().trim();
                 const maxStat = $(element).find('td:nth-child(7)').text().trim();
+                const diedWeapon = $(element).find('td:nth-child(6) span.item').attr('title');
+                
 
                 if (name && diedOn && totalFame && killedBy) {
-                    deaths.push({ name, diedOn, totalFame, killedBy, maxStat });
+                    deaths.push({ name, diedOn, totalFame, killedBy, maxStat, diedWeapon });
                 }
             });
 
@@ -46,7 +48,7 @@ client.on('messageCreate', async message => {
 
             const recentDeaths = deaths.slice(0, 5);
             const deathMessages = recentDeaths.map((death, index) => {
-                return `**${index + 1}. ${death.name} (${death.maxStat})\n**Died On:** ${death.diedOn.replace('T', ' ').replace('Z', '')}\n**Total Fame:** ${death.totalFame}\n**Killed By:** ${death.killedBy}`;
+                return `💀 **${index + 1}. ${death.name} (${death.maxStat})**\n🗓️ **Died On:** ${death.diedOn.replace('T', ' ').replace('Z', '')} with a ${death.diedWeapon}\n⭐ **Total Fame:** ${death.totalFame}\n⚔️ **Killed By:** ${death.killedBy}`;
             });
 
             await message.channel.send(deathMessages.join('\n\n'));
@@ -88,7 +90,7 @@ client.on('messageCreate', async message => {
                 return;
             }
 
-            await message.channel.send(`**Guild Fame:** ${fame}\n**Guild Rank:** ${rank}`);
+            await message.channel.send(`🏅 **Guild Fame:** ${fame}\n🏆 **Guild Rank:** ${rank}`);
         } catch (error) {
             console.error('Error fetching or sending data:', error);
             await message.channel.send('An error occurred while fetching rank and fame information.');
@@ -115,10 +117,11 @@ client.on('messageCreate', async message => {
                 const topFame = $(element).find('td:nth-child(4)').text().trim();
                 const topClass = $(element).find('td:nth-child(5)').text().trim();
                 const topStat = $(element).find('td:nth-child(7)').text().trim();
+                const topItem = $(element).find('td:nth-child(6) span.item').attr('title');
                 console.log('Parsed Character Name:', name);  // Log each parsed character name for debugging
 
                 if (name) {
-                    topCharacters.push({name, topFame, topClass, topStat});
+                    topCharacters.push({name, topFame, topClass, topStat, topItem});
                 }
             });
 
@@ -130,7 +133,7 @@ client.on('messageCreate', async message => {
             }
 
             const topCharactersMessages = topCharacters.slice(0, 5).map((topCharacters, index) => {
-                return `${index + 1}. **${topCharacters.name}** (${topCharacters.topStat}) **Fame:** ${topCharacters.topFame} **Class:** ${topCharacters.topClass}`;
+                return `${index + 1}. **${topCharacters.name}** (${topCharacters.topStat})\n⭐ **Fame:** ${topCharacters.topFame}\n⚔️ **Class:** ${topCharacters.topClass}\n⚔️ **Weapon:** ${topCharacters.topItem}`;
             });
 
             await message.channel.send(topCharactersMessages.join('\n\n'));
